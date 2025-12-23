@@ -1,0 +1,128 @@
+.data
+msg1: .asciiz "Enter marks for 5 subjects:\n"
+msg2: .asciiz "Enter mark: "
+totalMsg: .asciiz "\nTotal Marks: "
+avgMsg: .asciiz "\nAverage Marks: "
+passMsg: .asciiz "\nStatus: PASS"
+failMsg: .asciiz "\nStatus: FAIL"
+gradeMsg: .asciiz "\nGrade: "
+
+gradeA: .asciiz "A"
+gradeB: .asciiz "B"
+gradeC: .asciiz "C"
+gradeD: .asciiz "D"
+
+marks: .space 20   # 5 integers × 4 bytes
+
+.text
+.globl main
+
+main:
+    li $t0, 0          # i = 0
+    li $t1, 5          # number of subjects
+    li $t2, 0          # total = 0
+
+    # Print message
+    li $v0, 4
+    la $a0, msg1
+    syscall
+
+input_loop:
+    beq $t0, $t1, calc_avg
+
+    # Prompt
+    li $v0, 4
+    la $a0, msg2
+    syscall
+
+    # Read integer
+    li $v0, 5
+    syscall
+    move $t3, $v0
+
+    # Store in array
+    sw $t3, marks($t0)
+    
+    # total += mark
+    add $t2, $t2, $t3
+
+    addi $t0, $t0, 4
+    j input_loop
+
+calc_avg:
+    li $t4, 5
+    div $t2, $t4
+    mflo $t5        # average in $t5
+
+    # Print total
+    li $v0, 4
+    la $a0, totalMsg
+    syscall
+
+    li $v0, 1
+    move $a0, $t2
+    syscall
+
+    # Print average
+    li $v0, 4
+    la $a0, avgMsg
+    syscall
+
+    li $v0, 1
+    move $a0, $t5
+    syscall
+
+    # Pass/Fail check
+    blt $t5, 40, fail
+
+pass:
+    li $v0, 4
+    la $a0, passMsg
+    syscall
+
+    # Grade logic
+    bge $t5, 90, grade_A
+    bge $t5, 75, grade_B
+    bge $t5, 60, grade_C
+    bge $t5, 40, grade_D
+
+fail:
+    li $v0, 4
+    la $a0, failMsg
+    syscall
+    j exit
+
+grade_A:
+    li $v0, 4
+    la $a0, gradeMsg
+    syscall
+    la $a0, gradeA
+    syscall
+    j exit
+
+grade_B:
+    li $v0, 4
+    la $a0, gradeMsg
+    syscall
+    la $a0, gradeB
+    syscall
+    j exit
+
+grade_C:
+    li $v0, 4
+    la $a0, gradeMsg
+    syscall
+    la $a0, gradeC
+    syscall
+    j exit
+
+grade_D:
+    li $v0, 4
+    la $a0, gradeMsg
+    syscall
+    la $a0, gradeD
+    syscall
+
+exit:
+    li $v0, 10
+    syscall      
